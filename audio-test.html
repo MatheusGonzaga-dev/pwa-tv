@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Áudio para Teste</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        button {
+            background: #00d4ff;
+            color: #1a1a1a;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #0099cc;
+        }
+        audio {
+            width: 100%;
+            margin: 20px 0;
+        }
+        .info {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid #00d4ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 Gerador de Áudio para PWA TV</h1>
+        <p>Este gerador cria um arquivo de áudio simples para testar no PWA.</p>
+        
+        <div class="info">
+            <h3>Instruções:</h3>
+            <p>1. Clique em "Gerar Áudio"</p>
+            <p>2. Baixe o arquivo de áudio</p>
+            <p>3. Salve como "test-audio.wav" na pasta do projeto</p>
+            <p>4. Atualize o HTML para usar o arquivo local</p>
+        </div>
+        
+        <button onclick="generateAudio()">🎵 Gerar Áudio de Teste</button>
+        <button onclick="generateSilentAudio()">🔇 Gerar Áudio Silencioso</button>
+        
+        <audio id="audio-player" controls style="display: none;">
+            Seu navegador não suporta áudio HTML5.
+        </audio>
+        
+        <div id="download-link" style="display: none;">
+            <a id="download-btn" download="test-audio.wav" class="btn">📥 Baixar Arquivo de Áudio</a>
+        </div>
+    </div>
+    
+    <script>
+        function generateAudio() {
+            // Criar contexto de áudio
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const sampleRate = audioContext.sampleRate;
+            const duration = 2; // 2 segundos
+            const samples = sampleRate * duration;
+            
+            // Criar buffer de áudio
+            const buffer = audioContext.createBuffer(1, samples, sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            // Gerar tom senoidal (440Hz - Lá)
+            for (let i = 0; i < samples; i++) {
+                data[i] = Math.sin(2 * Math.PI * 440 * i / sampleRate) * 0.3;
+            }
+            
+            // Converter para WAV
+            const wav = audioBufferToWav(buffer);
+            const blob = new Blob([wav], { type: 'audio/wav' });
+            
+            // Mostrar player e link de download
+            const audioPlayer = document.getElementById('audio-player');
+            const downloadLink = document.getElementById('download-link');
+            const downloadBtn = document.getElementById('download-btn');
+            
+            audioPlayer.src = URL.createObjectURL(blob);
+            audioPlayer.style.display = 'block';
+            
+            downloadBtn.href = URL.createObjectURL(blob);
+            downloadLink.style.display = 'block';
+        }
+        
+        function generateSilentAudio() {
+            // Criar contexto de áudio
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const sampleRate = audioContext.sampleRate;
+            const duration = 1; // 1 segundo
+            const samples = sampleRate * duration;
+            
+            // Criar buffer de áudio silencioso
+            const buffer = audioContext.createBuffer(1, samples, sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            // Preencher com zeros (silêncio)
+            for (let i = 0; i < samples; i++) {
+                data[i] = 0;
+            }
+            
+            // Converter para WAV
+            const wav = audioBufferToWav(buffer);
+            const blob = new Blob([wav], { type: 'audio/wav' });
+            
+            // Mostrar player e link de download
+            const audioPlayer = document.getElementById('audio-player');
+            const downloadLink = document.getElementById('download-link');
+            const downloadBtn = document.getElementById('download-btn');
+            
+            audioPlayer.src = URL.createObjectURL(blob);
+            audioPlayer.style.display = 'block';
+            
+            downloadBtn.href = URL.createObjectURL(blob);
+            downloadBtn.download = 'silent-audio.wav';
+            downloadLink.style.display = 'block';
+        }
+        
+        function audioBufferToWav(buffer) {
+            const numberOfChannels = buffer.numberOfChannels;
+            const sampleRate = buffer.sampleRate;
+            const format = 1; // PCM
+            const bitDepth = 16;
+            
+            const bytesPerSample = bitDepth / 8;
+            const blockAlign = numberOfChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = buffer.length * blockAlign;
+            const bufferSize = 44 + dataSize;
+            
+            const arrayBuffer = new ArrayBuffer(bufferSize);
+            const view = new DataView(arrayBuffer);
+            
+            // WAV header
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+            
+            writeString(0, 'RIFF');
+            view.setUint32(4, bufferSize - 8, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, format, true);
+            view.setUint16(22, numberOfChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, bitDepth, true);
+            writeString(36, 'data');
+            view.setUint32(40, dataSize, true);
+            
+            // Audio data
+            let offset = 44;
+            for (let i = 0; i < buffer.length; i++) {
+                for (let channel = 0; channel < numberOfChannels; channel++) {
+                    const sample = Math.max(-1, Math.min(1, buffer.getChannelData(channel)[i]));
+                    view.setInt16(offset, sample * 0x7FFF, true);
+                    offset += 2;
+                }
+            }
+            
+            return arrayBuffer;
+        }
+    </script>
+</body>
+</html>

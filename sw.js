@@ -14,10 +14,8 @@ const STATIC_FILES = [
     '/icon-512.png'
 ];
 
-// Recursos externos para cache
+// Recursos externos para cache (apenas recursos que permitem CORS)
 const EXTERNAL_RESOURCES = [
-    'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
-    'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
     'https://picsum.photos/800/600?random=1',
     'https://picsum.photos/800/600?random=2',
     'https://picsum.photos/800/600?random=3'
@@ -34,10 +32,18 @@ self.addEventListener('install', (event) => {
                 console.log('[SW] Cacheando arquivos estáticos...');
                 return cache.addAll(STATIC_FILES);
             }),
-            // Cache dos recursos externos
+            // Cache dos recursos externos (com tratamento de erro)
             caches.open(DYNAMIC_CACHE).then((cache) => {
                 console.log('[SW] Cacheando recursos externos...');
-                return cache.addAll(EXTERNAL_RESOURCES.map(url => new Request(url, { mode: 'cors' })));
+                return Promise.allSettled(
+                    EXTERNAL_RESOURCES.map(url => 
+                        cache.add(new Request(url, { mode: 'cors' }))
+                            .catch(error => {
+                                console.log('[SW] Erro ao cachear:', url, error.message);
+                                return null;
+                            })
+                    )
+                );
             })
         ]).then(() => {
             console.log('[SW] Cache concluído com sucesso!');
