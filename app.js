@@ -681,19 +681,423 @@ class PWATVApp {
 
     // Instalar PWA na TV
     installPWAOnTV() {
+        // Tentar instalação automática primeiro
         if (this.deferredPrompt) {
             this.deferredPrompt.prompt();
             this.deferredPrompt.userChoice.then((choiceResult) => {
                 if (choiceResult.outcome === 'accepted') {
                     this.showNotification('✅ PWA instalado com sucesso na TV!', 'success');
                 } else {
-                    this.showNotification('📋 Siga as instruções para instalação manual', 'info');
+                    this.attemptManualInstallation();
                 }
                 this.deferredPrompt = null;
             });
         } else {
-            this.showNotification('📋 Siga as instruções para instalação manual', 'info');
+            // Tentar métodos alternativos de instalação
+            this.attemptAlternativeInstallation();
         }
+    }
+
+    // Tentar métodos alternativos de instalação
+    attemptAlternativeInstallation() {
+        const tvType = this.detectSmartTV();
+        
+        if (tvType) {
+            switch (tvType.type) {
+                case 'Samsung Smart TV':
+                    this.installSamsungPWA();
+                    break;
+                case 'LG Smart TV':
+                    this.installLGPWA();
+                    break;
+                case 'Android TV':
+                    this.installAndroidPWA();
+                    break;
+                case 'Fire TV':
+                    this.installFirePWA();
+                    break;
+                case 'Apple TV':
+                    this.installApplePWA();
+                    break;
+                default:
+                    this.attemptGenericInstallation();
+            }
+        } else {
+            this.attemptGenericInstallation();
+        }
+    }
+
+    // Instalação específica para Samsung Smart TV
+    installSamsungPWA() {
+        // Samsung Smart TV - tentar adicionar à tela inicial via JavaScript
+        try {
+            // Criar link de instalação
+            const installLink = document.createElement('a');
+            installLink.href = window.location.href;
+            installLink.rel = 'manifest';
+            
+            // Simular clique no menu Samsung
+            this.showSamsungInstallDialog();
+        } catch (error) {
+            this.attemptManualInstallation();
+        }
+    }
+
+    // Instalação específica para LG Smart TV
+    installLGPWA() {
+        // LG webOS - tentar instalação automática
+        try {
+            if (window.webOS && window.webOS.service) {
+                // Usar API webOS se disponível
+                this.showLGInstallDialog();
+            } else {
+                this.showLGInstallDialog();
+            }
+        } catch (error) {
+            this.attemptManualInstallation();
+        }
+    }
+
+    // Instalação específica para Android TV
+    installAndroidPWA() {
+        // Android TV - tentar usar Chrome PWA install
+        try {
+            if (navigator.userAgent.includes('Chrome')) {
+                this.showAndroidInstallDialog();
+            } else {
+                this.attemptManualInstallation();
+            }
+        } catch (error) {
+            this.attemptManualInstallation();
+        }
+    }
+
+    // Instalação específica para Fire TV
+    installFirePWA() {
+        // Fire TV - tentar instalação via Silk browser
+        try {
+            this.showFireInstallDialog();
+        } catch (error) {
+            this.attemptManualInstallation();
+        }
+    }
+
+    // Instalação específica para Apple TV
+    installApplePWA() {
+        // Apple TV - tentar instalação via Safari
+        try {
+            this.showAppleInstallDialog();
+        } catch (error) {
+            this.attemptManualInstallation();
+        }
+    }
+
+    // Tentativa genérica de instalação
+    attemptGenericInstallation() {
+        // Tentar diferentes métodos de instalação
+        const methods = [
+            () => this.tryAddToHomeScreen(),
+            () => this.tryBookmarkInstall(),
+            () => this.tryPWAInstall()
+        ];
+
+        let methodIndex = 0;
+        const tryNextMethod = () => {
+            if (methodIndex < methods.length) {
+                try {
+                    const result = methods[methodIndex]();
+                    if (!result) {
+                        methodIndex++;
+                        setTimeout(tryNextMethod, 1000);
+                    }
+                } catch (error) {
+                    methodIndex++;
+                    setTimeout(tryNextMethod, 1000);
+                }
+            } else {
+                this.attemptManualInstallation();
+            }
+        };
+
+        tryNextMethod();
+    }
+
+    // Tentar adicionar à tela inicial
+    tryAddToHomeScreen() {
+        try {
+            // Simular teclas do controle remoto
+            const event = new KeyboardEvent('keydown', {
+                key: 'F12',
+                code: 'F12',
+                keyCode: 123
+            });
+            document.dispatchEvent(event);
+            
+            this.showNotification('🔧 Pressione F12 ou Menu para acessar opções', 'info');
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    // Tentar instalação via bookmark
+    tryBookmarkInstall() {
+        try {
+            // Tentar criar bookmark
+            const bookmarkData = {
+                title: 'PWA TV',
+                url: window.location.href
+            };
+            
+            this.showBookmarkDialog();
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    // Tentar instalação PWA padrão
+    tryPWAInstall() {
+        try {
+            // Verificar se pode instalar
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                this.showPWAInstallDialog();
+                return true;
+            }
+            return false;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    // Mostrar dialog de instalação Samsung
+    showSamsungInstallDialog() {
+        this.showInstallDialog('Samsung Smart TV', [
+            '✅ PWA detectado na Samsung TV!',
+            '📱 Pressione o botão "Menu" do controle',
+            '🔍 Procure por "Adicionar à Tela Inicial"',
+            '⚡ Ou use as teclas: Menu → Apps → Adicionar'
+        ]);
+    }
+
+    // Mostrar dialog de instalação LG
+    showLGInstallDialog() {
+        this.showInstallDialog('LG Smart TV', [
+            '✅ PWA detectado na LG TV!',
+            '📱 Toque na tela ou use o controle',
+            '🔍 Procure por "Adicionar à Tela Inicial"',
+            '⚡ Ou use: Menu → Navegador → Adicionar'
+        ]);
+    }
+
+    // Mostrar dialog de instalação Android TV
+    showAndroidInstallDialog() {
+        this.showInstallDialog('Android TV', [
+            '✅ PWA detectado na Android TV!',
+            '📱 Use o controle remoto',
+            '🔍 Toque nos 3 pontos do Chrome',
+            '⚡ Selecione "Instalar app"'
+        ]);
+    }
+
+    // Mostrar dialog de instalação Fire TV
+    showFireInstallDialog() {
+        this.showInstallDialog('Fire TV', [
+            '✅ PWA detectado na Fire TV!',
+            '📱 Use o controle Amazon',
+            '🔍 Pressione Menu no navegador',
+            '⚡ Selecione "Adicionar à Tela Inicial"'
+        ]);
+    }
+
+    // Mostrar dialog de instalação Apple TV
+    showAppleInstallDialog() {
+        this.showInstallDialog('Apple TV', [
+            '✅ PWA detectado na Apple TV!',
+            '📱 Use o controle Siri',
+            '🔍 Toque no ícone de compartilhar',
+            '⚡ Selecione "Adicionar à Tela Inicial"'
+        ]);
+    }
+
+    // Dialog genérico de instalação
+    showInstallDialog(tvType, steps) {
+        const dialog = document.createElement('div');
+        dialog.className = 'install-dialog';
+        dialog.innerHTML = `
+            <div class="dialog-content">
+                <div class="dialog-header">
+                    <h3>🚀 Instalação ${tvType}</h3>
+                    <button class="close-dialog" onclick="this.parentElement.parentElement.remove()">×</button>
+                </div>
+                <div class="dialog-body">
+                    ${steps.map(step => `<div class="install-step">${step}</div>`).join('')}
+                    <div class="dialog-actions">
+                        <button class="btn primary" onclick="this.parentElement.parentElement.parentElement.remove()">
+                            ✅ Entendi
+                        </button>
+                        <button class="btn secondary" onclick="window.pwaApp.attemptManualInstallation()">
+                            📋 Ver Instruções Completas
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Estilos do dialog
+        const styles = `
+            <style>
+                .install-dialog {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 20000;
+                    animation: fadeIn 0.3s ease;
+                }
+                
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                
+                .dialog-content {
+                    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+                    border: 2px solid #00d4ff;
+                    border-radius: 20px;
+                    padding: 30px;
+                    max-width: 500px;
+                    width: 90%;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    animation: slideIn 0.3s ease;
+                }
+                
+                @keyframes slideIn {
+                    from { transform: translateY(-50px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+                
+                .dialog-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                    border-bottom: 2px solid #333;
+                    padding-bottom: 15px;
+                }
+                
+                .dialog-header h3 {
+                    margin: 0;
+                    color: #00d4ff;
+                    font-size: 24px;
+                }
+                
+                .close-dialog {
+                    background: none;
+                    border: none;
+                    color: #cccccc;
+                    font-size: 28px;
+                    cursor: pointer;
+                    padding: 0;
+                    width: 35px;
+                    height: 35px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                .close-dialog:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                    color: white;
+                }
+                
+                .install-step {
+                    background: rgba(0, 212, 255, 0.1);
+                    border: 1px solid #00d4ff;
+                    border-radius: 10px;
+                    padding: 15px;
+                    margin: 10px 0;
+                    font-size: 16px;
+                    line-height: 1.4;
+                }
+                
+                .dialog-actions {
+                    display: flex;
+                    gap: 15px;
+                    margin-top: 25px;
+                    justify-content: center;
+                }
+                
+                .dialog-actions .btn {
+                    padding: 12px 24px;
+                    border: none;
+                    border-radius: 10px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                }
+                
+                .dialog-actions .btn.primary {
+                    background: linear-gradient(135deg, #00d4ff, #0099cc);
+                    color: #1a1a1a;
+                }
+                
+                .dialog-actions .btn.secondary {
+                    background: rgba(255, 255, 255, 0.1);
+                    color: white;
+                    border: 1px solid #666;
+                }
+                
+                .dialog-actions .btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                }
+            </style>
+        `;
+
+        // Adicionar estilos se não existirem
+        if (!document.getElementById('install-dialog-styles')) {
+            const styleElement = document.createElement('div');
+            styleElement.id = 'install-dialog-styles';
+            styleElement.innerHTML = styles;
+            document.head.appendChild(styleElement);
+        }
+
+        document.body.appendChild(dialog);
+    }
+
+    // Tentar instalação manual como fallback
+    attemptManualInstallation() {
+        this.showNotification('📋 Siga as instruções para instalação manual', 'info');
+        // O widget já mostra as instruções, então não precisa fazer nada mais
+    }
+
+    // Mostrar dialog de bookmark
+    showBookmarkDialog() {
+        this.showInstallDialog('Adicionar aos Favoritos', [
+            '✅ Adicione aos favoritos do navegador',
+            '📱 Use Ctrl+D ou Menu → Favoritos',
+            '🔍 Procure por "Adicionar Favorito"',
+            '⚡ Salve como "PWA TV"'
+        ]);
+    }
+
+    // Mostrar dialog PWA
+    showPWAInstallDialog() {
+        this.showInstallDialog('Instalação PWA', [
+            '✅ PWA pronto para instalação!',
+            '📱 Procure pelo ícone de instalação',
+            '🔍 Clique em "Instalar" quando aparecer',
+            '⚡ Ou use Menu → Instalar App'
+        ]);
     }
 
     // Métodos para obter passos de instalação
