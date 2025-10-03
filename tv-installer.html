@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instalador Automático PWA TV</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1a1a1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PWA TV">
+    
+    <!-- TV Detection Meta Tags -->
+    <meta name="samsung-tv-app" content="true">
+    <meta name="lg-tv-app" content="true">
+    <meta name="android-tv-app" content="true">
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+    
+    <style>
+        .tv-installer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            max-width: 400px;
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            border: 2px solid #00d4ff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            transform: translateX(100%);
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .tv-installer.show {
+            transform: translateX(0);
+        }
+        
+        .installer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .installer-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #00d4ff;
+            margin: 0;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: #cccccc;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .tv-detected {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .install-btn {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #1a1a1a;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+        }
+        
+        .install-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+        }
+        
+        .install-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .install-steps {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+        }
+        
+        .step-number {
+            background: #00d4ff;
+            color: #1a1a1a;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        
+        .tv-type {
+            display: inline-block;
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+        
+        .network-info {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #ffc107;
+        }
+        
+        .qr-code {
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .qr-placeholder {
+            width: 150px;
+            height: 150px;
+            background: white;
+            border-radius: 8px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a1a1a;
+            font-size: 12px;
+            border: 2px solid #00d4ff;
+        }
+        
+        .status-message {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .status-success {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+        
+        .status-error {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid #ff4444;
+            color: #ff4444;
+        }
+        
+        .status-info {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid #00d4ff;
+            color: #00d4ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="tv-installer" id="tv-installer">
+        <div class="installer-header">
+            <h3 class="installer-title">📺 Instalar PWA TV</h3>
+            <button class="close-btn" onclick="closeInstaller()">×</button>
+        </div>
+        
+        <div id="tv-detection" class="tv-detected" style="display: none;">
+            <strong>TV Detectada:</strong> <span id="tv-type"></span>
+        </div>
+        
+        <div id="install-content">
+            <button class="install-btn" id="install-btn" onclick="installPWA()">
+                🚀 Instalar PWA na TV
+            </button>
+            
+            <div class="network-info">
+                <strong>📡 Rede Local:</strong><br>
+                <span id="network-url"></span>
+            </div>
+            
+            <div class="qr-code">
+                <div class="qr-placeholder" id="qr-code">
+                    📱<br>QR Code<br>Aqui
+                </div>
+                <p style="margin: 10px 0 0 0; font-size: 12px;">Escaneie com o celular para abrir na TV</p>
+            </div>
+        </div>
+        
+        <div id="install-steps" class="install-steps" style="display: none;">
+            <strong>📋 Passos para Instalar:</strong>
+            <div id="steps-list"></div>
+        </div>
+        
+        <div id="status-message"></div>
+    </div>
+    
+    <script>
+        class TVInstaller {
+            constructor() {
+                this.deferredPrompt = null;
+                this.tvType = null;
+                this.networkUrl = null;
+                this.installer = document.getElementById('tv-installer');
+                
+                this.init();
+            }
+            
+            init() {
+                this.detectTV();
+                this.getNetworkUrl();
+                this.setupEventListeners();
+                this.showInstaller();
+                this.generateQRCode();
+            }
+            
+            detectTV() {
+                const userAgent = navigator.userAgent;
+                const platform = navigator.platform;
+                
+                // Detectar Samsung Smart TV
+                if (userAgent.includes('Samsung') || userAgent.includes('Tizen')) {
+                    this.tvType = 'Samsung Smart TV';
+                    this.showTVDetection();
+                    this.showSamsungSteps();
+                    return;
+                }
+                
+                // Detectar LG Smart TV
+                if (userAgent.includes('LG') || userAgent.includes('WebOS')) {
+                    this.tvType = 'LG Smart TV';
+                    this.showTVDetection();
+                    this.showLGSteps();
+                    return;
+                }
+                
+                // Detectar Android TV
+                if (userAgent.includes('Android TV') || userAgent.includes('AndroidTV')) {
+                    this.tvType = 'Android TV';
+                    this.showTVDetection();
+                    this.showAndroidSteps();
+                    return;
+                }
+                
+                // Detectar Fire TV
+                if (userAgent.includes('Fire TV') || userAgent.includes('FireTV')) {
+                    this.tvType = 'Fire TV';
+                    this.showTVDetection();
+                    this.showFireSteps();
+                    return;
+                }
+                
+                // Detectar Apple TV
+                if (userAgent.includes('AppleTV') || userAgent.includes('tvOS')) {
+                    this.tvType = 'Apple TV';
+                    this.showTVDetection();
+                    this.showAppleSteps();
+                    return;
+                }
+                
+                // Detectar Smart TV genérica
+                if (this.isLargeScreen() && this.isTVLikeDevice()) {
+                    this.tvType = 'Smart TV';
+                    this.showTVDetection();
+                    this.showGenericSteps();
+                    return;
+                }
+            }
+            
+            isLargeScreen() {
+                return window.screen.width >= 1920 || window.screen.height >= 1080;
+            }
+            
+            isTVLikeDevice() {
+                // Detectar se é um dispositivo tipo TV
+                return !navigator.userAgent.includes('Mobile') && 
+                       !navigator.userAgent.includes('Tablet') &&
+                       (window.screen.width > 1280 || window.screen.height > 720);
+            }
+            
+            showTVDetection() {
+                const detection = document.getElementById('tv-detection');
+                const tvType = document.getElementById('tv-type');
+                
+                tvType.textContent = this.tvType;
+                detection.style.display = 'block';
+            }
+            
+            getNetworkUrl() {
+                // Tentar obter a URL da rede local
+                const hostname = window.location.hostname;
+                const port = window.location.port;
+                
+                if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                    // Tentar detectar IP local
+                    this.detectLocalIP().then(ip => {
+                        if (ip) {
+                            this.networkUrl = `http://${ip}:${port || 8000}`;
+                        } else {
+                            this.networkUrl = window.location.origin;
+                        }
+                        this.updateNetworkInfo();
+                    });
+                } else {
+                    this.networkUrl = window.location.origin;
+                    this.updateNetworkInfo();
+                }
+            }
+            
+            async detectLocalIP() {
+                try {
+                    // Usar WebRTC para detectar IP local
+                    const pc = new RTCPeerConnection({
+                        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+                    });
+                    
+                    pc.createDataChannel('');
+                    const offer = await pc.createOffer();
+                    await pc.setLocalDescription(offer);
+                    
+                    return new Promise((resolve) => {
+                        pc.onicecandidate = (event) => {
+                            if (event.candidate) {
+                                const candidate = event.candidate.candidate;
+                                const ipMatch = candidate.match(/([0-9]{1,3}(\.[0-9]{1,3}){3})/);
+                                if (ipMatch && !ipMatch[1].startsWith('127.')) {
+                                    resolve(ipMatch[1]);
+                                }
+                            }
+                        };
+                        
+                        setTimeout(() => resolve(null), 2000);
+                    });
+                } catch (error) {
+                    return null;
+                }
+            }
+            
+            updateNetworkInfo() {
+                const networkUrl = document.getElementById('network-url');
+                if (networkUrl && this.networkUrl) {
+                    networkUrl.textContent = this.networkUrl;
+                }
+            }
+            
+            setupEventListeners() {
+                // Evento de instalação PWA
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    this.deferredPrompt = e;
+                    this.updateInstallButton(true);
+                });
+                
+                window.addEventListener('appinstalled', () => {
+                    this.showStatus('✅ PWA instalado com sucesso!', 'success');
+                    this.updateInstallButton(false, 'PWA Instalado');
+                });
+                
+                // Detectar mudanças de conectividade
+                window.addEventListener('online', () => {
+                    this.showStatus('🌐 Conectado à internet', 'success');
+                });
+                
+                window.addEventListener('offline', () => {
+                    this.showStatus('📡 Modo offline ativo', 'info');
+                });
+            }
+            
+            showInstaller() {
+                setTimeout(() => {
+                    this.installer.classList.add('show');
+                }, 1000);
+            }
+            
+            updateInstallButton(enabled, text = '🚀 Instalar PWA na TV') {
+                const btn = document.getElementById('install-btn');
+                btn.disabled = !enabled;
+                btn.textContent = text;
+            }
+            
+            showSamsungSteps() {
+                const steps = [
+                    'Abra o Navegador Samsung',
+                    'Digite o endereço da rede',
+                    'Pressione Menu → "Adicionar à Tela Inicial"',
+                    'Confirme a instalação'
+                ];
+                this.showSteps(steps);
+            }
+            
+            showLGSteps() {
+                const steps = [
+                    'Abra o Navegador LG (webOS)',
+                    'Digite o endereço da rede',
+                    'Toque em "Adicionar à Tela Inicial"',
+                    'Confirme a instalação'
+                ];
+                this.showSteps(steps);
+            }
+            
+            showAndroidSteps() {
+                const steps = [
+                    'Abra o Chrome na Android TV',
+                    'Digite o endereço da rede',
+                    'Toque nos 3 pontos → "Instalar app"',
+                    'Confirme a instalação'
+                ];
+                this.showSteps(steps);
+            }
+            
+            showFireSteps() {
+                const steps = [
+                    'Abra o navegador Silk na Fire TV',
+                    'Digite o endereço da rede',
+                    'Pressione Menu → "Adicionar à Tela Inicial"',
+                    'Confirme a instalação'
+                ];
+                this.showSteps(steps);
+            }
+            
+            showAppleSteps() {
+                const steps = [
+                    'Abra o Safari na Apple TV',
+                    'Digite o endereço da rede',
+                    'Toque em "Adicionar à Tela Inicial"',
+                    'Confirme a instalação'
+                ];
+                this.showSteps(steps);
+            }
+            
+            showGenericSteps() {
+                const steps = [
+                    'Abra o navegador da Smart TV',
+                    'Digite o endereço da rede',
+                    'Procure por "Adicionar à Tela Inicial"',
+                    'Confirme a instalação'
+                ];
+                this.showSteps(steps);
+            }
+            
+            showSteps(steps) {
+                const stepsContainer = document.getElementById('install-steps');
+                const stepsList = document.getElementById('steps-list');
+                
+                stepsList.innerHTML = steps.map((step, index) => `
+                    <div class="step">
+                        <div class="step-number">${index + 1}</div>
+                        <div>${step}</div>
+                    </div>
+                `).join('');
+                
+                stepsContainer.style.display = 'block';
+            }
+            
+            generateQRCode() {
+                // Simular geração de QR Code (em produção, usar biblioteca real)
+                const qrPlaceholder = document.getElementById('qr-code');
+                if (this.networkUrl) {
+                    qrPlaceholder.innerHTML = `
+                        <div style="font-size: 10px; text-align: center;">
+                            📱<br>
+                            ${this.networkUrl}<br>
+                            <small>QR Code</small>
+                        </div>
+                    `;
+                }
+            }
+            
+            showStatus(message, type = 'info') {
+                const statusContainer = document.getElementById('status-message');
+                statusContainer.className = `status-message status-${type}`;
+                statusContainer.textContent = message;
+                statusContainer.style.display = 'block';
+                
+                setTimeout(() => {
+                    statusContainer.style.display = 'none';
+                }, 5000);
+            }
+        }
+        
+        // Funções globais
+        function installPWA() {
+            if (window.tvInstaller && window.tvInstaller.deferredPrompt) {
+                window.tvInstaller.deferredPrompt.prompt();
+                window.tvInstaller.deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        window.tvInstaller.showStatus('✅ Instalação iniciada!', 'success');
+                    } else {
+                        window.tvInstaller.showStatus('❌ Instalação cancelada', 'error');
+                    }
+                    window.tvInstaller.deferredPrompt = null;
+                });
+            } else {
+                window.tvInstaller.showStatus('📋 Siga as instruções abaixo para instalar manualmente', 'info');
+            }
+        }
+        
+        function closeInstaller() {
+            const installer = document.getElementById('tv-installer');
+            installer.classList.remove('show');
+            setTimeout(() => {
+                installer.style.display = 'none';
+            }, 500);
+        }
+        
+        // Inicializar quando o DOM estiver carregado
+        document.addEventListener('DOMContentLoaded', () => {
+            window.tvInstaller = new TVInstaller();
+        });
+    </script>
+</body>
+</html>
