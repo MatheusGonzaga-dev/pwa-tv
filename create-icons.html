@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Ícones PWA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .icon-preview {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .icon {
+            width: 192px;
+            height: 192px;
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            color: white;
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.3);
+        }
+        .icon-large {
+            width: 512px;
+            height: 512px;
+            font-size: 200px;
+        }
+        canvas {
+            border: 1px solid #333;
+            margin: 10px;
+        }
+        button {
+            background: #00d4ff;
+            color: #1a1a1a;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0099cc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gerador de Ícones PWA TV</h1>
+    <p>Esta página gera os ícones necessários para o PWA. Clique nos botões para baixar os ícones.</p>
+    
+    <div class="icon-preview">
+        <div class="icon" id="icon192">📺</div>
+        <div class="icon icon-large" id="icon512">📺</div>
+    </div>
+    
+    <div>
+        <button onclick="generateIcon(192)">Gerar Ícone 192x192</button>
+        <button onclick="generateIcon(512)">Gerar Ícone 512x512</button>
+    </div>
+    
+    <div id="canvas-container"></div>
+
+    <script>
+        function generateIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Gradiente de fundo
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#00d4ff');
+            gradient.addColorStop(1, '#0099cc');
+            
+            // Fundo
+            ctx.fillStyle = gradient;
+            ctx.roundRect(0, 0, size, size, size * 0.1);
+            ctx.fill();
+            
+            // Sombra interna
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+            ctx.shadowBlur = size * 0.05;
+            ctx.shadowOffsetX = size * 0.02;
+            ctx.shadowOffsetY = size * 0.02;
+            
+            // Ícone da TV
+            const iconSize = size * 0.6;
+            const iconX = (size - iconSize) / 2;
+            const iconY = (size - iconSize) / 2;
+            
+            ctx.fillStyle = 'white';
+            ctx.font = `${iconSize}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('📺', size / 2, size / 2);
+            
+            // Remover sombra
+            ctx.shadowColor = 'transparent';
+            
+            // Adicionar ao DOM
+            const container = document.getElementById('canvas-container');
+            container.innerHTML = '';
+            container.appendChild(canvas);
+            
+            // Botão de download
+            const downloadBtn = document.createElement('button');
+            downloadBtn.textContent = `Baixar ${size}x${size}`;
+            downloadBtn.onclick = () => downloadCanvas(canvas, `icon-${size}.png`);
+            container.appendChild(downloadBtn);
+        }
+        
+        function downloadCanvas(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        // Adicionar roundRect se não existir
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+                this.closePath();
+            };
+        }
+        
+        // Gerar ícones automaticamente
+        window.onload = () => {
+            generateIcon(192);
+            setTimeout(() => generateIcon(512), 1000);
+        };
+    </script>
+</body>
+</html>

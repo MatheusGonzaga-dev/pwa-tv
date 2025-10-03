@@ -1,0 +1,59 @@
+{
+  "name": "PWA TV - Teste",
+  "short_name": "PWA TV",
+  "description": "Aplicativo PWA para testar funcionalidades em dispositivos TV e Smart TV",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "theme_color": "#1a1a1a",
+  "background_color": "#000000",
+  "categories": ["entertainment", "productivity"],
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot-tv.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Tela principal do PWA TV"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Vídeos",
+      "short_name": "Vídeos",
+      "description": "Acessar seção de vídeos",
+      "url": "/#video",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Configurações",
+      "short_name": "Config",
+      "description": "Acessar configurações",
+      "url": "/#settings",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "display_override": ["fullscreen", "standalone", "minimal-ui"],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}

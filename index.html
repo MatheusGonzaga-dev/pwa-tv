@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA TV - Teste</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1a1a1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PWA TV">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>PWA TV - Teste</h1>
+            <div class="status-indicators">
+                <span id="connection-status" class="status">Online</span>
+                <span id="install-status" class="status">PWA Disponível</span>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section class="hero">
+                <h2>Bem-vindo ao PWA TV</h2>
+                <p>Este é um site PWA otimizado para dispositivos TV e Smart TV</p>
+            </section>
+
+            <section class="navigation-grid">
+                <div class="nav-item" tabindex="0" data-section="video">
+                    <div class="nav-icon">🎬</div>
+                    <h3>Vídeos</h3>
+                    <p>Teste de reprodução de vídeo</p>
+                </div>
+                
+                <div class="nav-item" tabindex="0" data-section="images">
+                    <div class="nav-icon">🖼️</div>
+                    <h3>Imagens</h3>
+                    <p>Galeria de imagens</p>
+                </div>
+                
+                <div class="nav-item" tabindex="0" data-section="audio">
+                    <div class="nav-icon">🎵</div>
+                    <h3>Áudio</h3>
+                    <p>Player de música</p>
+                </div>
+                
+                <div class="nav-item" tabindex="0" data-section="settings">
+                    <div class="nav-icon">⚙️</div>
+                    <h3>Configurações</h3>
+                    <p>Opções do PWA</p>
+                </div>
+            </section>
+
+            <section class="content-section" id="video-section" style="display: none;">
+                <h2>Teste de Vídeo</h2>
+                <video controls width="100%" height="400">
+                    <source src="https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4" type="video/mp4">
+                    Seu navegador não suporta vídeo HTML5.
+                </video>
+                <div class="controls">
+                    <button class="btn" onclick="goBack()">Voltar</button>
+                </div>
+            </section>
+
+            <section class="content-section" id="images-section" style="display: none;">
+                <h2>Galeria de Imagens</h2>
+                <div class="image-gallery">
+                    <img src="https://picsum.photos/800/600?random=1" alt="Imagem 1" loading="lazy">
+                    <img src="https://picsum.photos/800/600?random=2" alt="Imagem 2" loading="lazy">
+                    <img src="https://picsum.photos/800/600?random=3" alt="Imagem 3" loading="lazy">
+                </div>
+                <div class="controls">
+                    <button class="btn" onclick="goBack()">Voltar</button>
+                </div>
+            </section>
+
+            <section class="content-section" id="audio-section" style="display: none;">
+                <h2>Player de Áudio</h2>
+                <audio controls style="width: 100%;">
+                    <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" type="audio/wav">
+                    Seu navegador não suporta áudio HTML5.
+                </audio>
+                <div class="audio-info">
+                    <p>Teste de reprodução de áudio no PWA</p>
+                </div>
+                <div class="controls">
+                    <button class="btn" onclick="goBack()">Voltar</button>
+                </div>
+            </section>
+
+            <section class="content-section" id="settings-section" style="display: none;">
+                <h2>Configurações</h2>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label>Modo Escuro:</label>
+                        <input type="checkbox" id="dark-mode" onchange="toggleDarkMode()">
+                    </div>
+                    <div class="setting-item">
+                        <label>Cache Offline:</label>
+                        <span id="cache-status">Ativo</span>
+                    </div>
+                    <div class="setting-item">
+                        <label>Versão PWA:</label>
+                        <span>1.0.0</span>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="btn" onclick="goBack()">Voltar</button>
+                    <button class="btn secondary" onclick="clearCache()">Limpar Cache</button>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>PWA TV - Teste de funcionalidades para Smart TV</p>
+            <div class="install-prompt" id="install-prompt" style="display: none;">
+                <button class="btn install-btn" id="install-btn">Instalar PWA</button>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
